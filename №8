@@ -1,0 +1,70 @@
+# 8) Спроектировать параметрический тип данных данных Residue,
+#представляющий собой кольцо вычетов по некоторому модулю
+#(параметр типа). Реализовать в функцию, обращающую все
+#обратимые элементы некоторого кольца вычетов.
+
+# Определяем параметрический тип данных Residue
+struct Residue{N} <: Number
+    value::Int
+    function Residue{N}(value::Int) where N
+        new(mod(value, N))
+    end
+end
+
+# Перегружаем базовые арифметические операции
+import Base: +, -, *, /, ^, ==, convert, zero, one, promote_rule
+
+# Сложение
++(a::Residue{N}, b::Residue{N}) where {N} = Residue{N}(a.value + b.value)
+
+# Вычитание
+-(a::Residue{N}, b::Residue{N}) where {N} = Residue{N}(a.value - b.value)
+
+# Умножение
+*(a::Residue{N}, b::Residue{N}) where {N} = Residue{N}(a.value * b.value)
+
+# Возведение в степень
+^(a::Residue{N}, n::Int) where {N} = Residue{N}(a.value ^ n)
+
+# Проверка на равенство
+==(a::Residue{N}, b::Residue{N}) where {N} = a.value == b.value
+
+# Преобразование
+convert(::Type{Residue{N}}, x::Int) where {N} = Residue{N}(x)
+
+# Нулевой элемент
+zero(::Type{Residue{N}}) where {N} = Residue{N}(0)
+
+# Единичный элемент
+one(::Type{Residue{N}}) where {N} = Residue{N}(1)
+
+# Правило продвижения типов
+promote_rule(::Type{Residue{N}}, ::Type{T}) where {N, T<:Number} = Residue{N}
+
+# Обращаемые элементы и их обратные
+function invertible_elements(::Type{Residue{N}}) where {N}
+    elements = [Residue{N}(a) for a in 1:N-1 if gcd(a, N) == 1]
+    inverses = Dict{Residue{N}, Residue{N}}()
+    for a in elements
+        for b in elements
+            if a * b == one(Residue{N})
+                inverses[a] = b
+                break
+            end
+        end
+    end
+    return inverses
+end
+
+# Пример использования
+const MODULUS = 7
+residue1 = Residue{MODULUS}(3)
+residue2 = Residue{MODULUS}(5)
+
+println("Остаток 1: ", residue1)
+println("Остаток 2: ", residue2)
+println("Sum: ", residue1 + residue2)
+println("Product: ", residue1 * residue2)
+
+inverses = invertible_elements(Residue{MODULUS})
+println("Обратимые элементы и их инверсии: ", inverses)
