@@ -1,0 +1,46 @@
+# 11)  Написать функцию factorize(n::T) where T <: Integer ,
+#возвращающую вектор состоящий из именованных кортежей
+#( NamedTuple ) с полями div и deg , в первом из которых должен
+#содержаться очередной простой делитель числа n , а во втором -
+#кратность этого делителя. Возвращаемый вектор должен содержать
+#кортежи со всеми простыми делителями и их кратностями (без
+#повторений).
+
+function factorize(n::T) where T <: Integer
+    original_n = n  # сохраняем оригинальное значение n
+    factors = NamedTuple{(:div, :deg)}[]
+
+    # Проверка делимости на 2
+    if n % 2 == 0
+        count = 0
+        while n % 2 == 0
+            n ÷= 2
+            count += 1
+        end
+        push!(factors, (div = 2, deg = count))
+    end
+
+    # Проверка делимости на другие простые числа
+    for i in 3:2:isqrt(original_n)
+        if n % i == 0
+            count = 0
+            while n % i == 0
+                n ÷= i
+                count += 1
+            end
+            push!(factors, (div = i, deg = count))
+        end
+    end
+
+    # Если n все еще больше 2, то это простое число
+    if n > 2
+        push!(factors, (div = n, deg = 1))
+    end
+
+    return factors
+end
+
+# Пример использования
+println(factorize(60))  # Output: [(div = 2, deg = 2), (div = 3, deg = 1), (div = 5, deg = 1)]
+println(factorize(84))  # Output: [(div = 2, deg = 2), (div = 3, deg = 1), (div = 7, deg = 1)]
+println(factorize(97))  # Output: [(div = 97, deg = 1)] (97 - простое число)
