@@ -1,0 +1,80 @@
+# 2)Спроектировать параметрический тип данных Polynomial, реализовать деление многочленов "уголком"
+
+# Определяем тип Polynomial
+struct Polynomial{T}
+    coeffs::Vector{T}
+end
+
+# Функция для создания многочлена
+Polynomial(coeffs::Vector{T}) where T = Polynomial{T}(coeffs)
+
+# Вывод многочлена в удобочитаемом формате
+function Base.show(io::IO, p::Polynomial)
+    n = length(p.coeffs)
+    first = true
+    for (i, coeff) in enumerate(p.coeffs)
+        if coeff != 0
+            pow = n - i
+            if !first && coeff > 0
+                print(io, " + ")
+            elseif coeff < 0
+                print(io, " - ")
+                coeff = -coeff
+            elseif first && coeff > 0
+                first = false
+            end
+
+            if pow == 0
+                print(io, coeff)
+            elseif pow == 1
+                print(io, "$coeff*x")
+            else
+                print(io, "$coeff*x^$pow")
+            end
+            first = false
+        end
+    end
+end
+
+# Деление многочленов "уголком"
+function divide_polynomials(p::Polynomial{T}, q::Polynomial{T}) where T
+    # Проверка, чтобы делитель не был нулевым многочленом
+    if all(==(0), q.coeffs)
+        throw(DivideError("Division by zero polynomial"))
+    end
+    
+    # Копируем коэффициенты, чтобы не изменять исходные многочлены
+    p_coeffs = copy(p.coeffs)
+    q_coeffs = q.coeffs
+    
+    # Степени многочленов
+    n = length(p_coeffs) - 1
+    m = length(q_coeffs) - 1
+    
+    # Инициализация частного и остатка
+    quotient = zeros(T, n - m + 1)
+    remainder = copy(p_coeffs)
+    
+    for k in 1:(n - m + 1)
+        quotient[k] = remainder[k] / q_coeffs[1]
+        for j in 1:(m + 1)
+            remainder[k + j - 1] -= quotient[k] * q_coeffs[j]
+        end
+    end
+    
+    # Убираем ведущие нули в остатке
+    while !isempty(remainder) && remainder[1] == 0
+        popfirst!(remainder)
+    end
+    
+    return Polynomial(quotient), Polynomial(remainder)
+end
+
+# Пример использования
+p = Polynomial([2.0, -3.0, 5.0]) # x^2 - 3x + 2
+q = Polynomial([1.0, -1.0]) # x - 1
+
+quotient, remainder = divide_polynomials(p, q)
+
+println("Quotient: ", quotient)
+println("Remainder: ", remainder)
