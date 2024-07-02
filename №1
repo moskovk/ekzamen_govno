@@ -1,0 +1,70 @@
+#1) Спроектировать параметрический тип данных Polynomial, реализовать операции +,-,*
+
+# Определение типа Polynomial
+struct Polynomial{T}
+    coeffs::Vector{T}  # Коэффициенты полинома
+end
+
+# Отображение полинома
+function Base.show(io::IO, p::Polynomial)
+    terms = []
+    for (i, coeff) in enumerate(p.coeffs)
+        if coeff != 0
+            term = string(coeff)
+            if i > 1
+                term *= "x^$(i-1)"
+            end
+            push!(terms, term)
+        end
+    end
+    print(io, join(reverse(terms), " + "))
+end
+
+# Сложение полиномов
+function Base.:+(p1::Polynomial, p2::Polynomial)
+    n = max(length(p1.coeffs), length(p2.coeffs))
+    coeffs = Vector{typeof(p1.coeffs[1])}(undef, n)
+    for i in 1:n
+        coeffs[i] = getindex(p1.coeffs, i, 0) + getindex(p2.coeffs, i, 0)
+    end
+    return Polynomial(coeffs)
+end
+
+# Вычитание полиномов
+function Base.:-(p1::Polynomial, p2::Polynomial)
+    n = max(length(p1.coeffs), length(p2.coeffs))
+    coeffs = Vector{typeof(p1.coeffs[1])}(undef, n)
+    for i in 1:n
+        coeffs[i] = getindex(p1.coeffs, i, 0) - getindex(p2.coeffs, i, 0)
+    end
+    return Polynomial(coeffs)
+end
+
+# Умножение полиномов
+function Base.:*(p1::Polynomial, p2::Polynomial)
+    m = length(p1.coeffs)
+    n = length(p2.coeffs)
+    coeffs = zeros(typeof(p1.coeffs[1]), m + n - 1)
+    for i in 1:m
+        for j in 1:n
+            coeffs[i + j - 1] += p1.coeffs[i] * p2.coeffs[j]
+        end
+    end
+    return Polynomial(coeffs)
+end
+
+# Вспомогательная функция для получения коэффициента или нуля
+function getindex(coeffs::Vector, i::Int, default)
+    return i <= length(coeffs) ? coeffs[i] : default
+end
+
+# Тестирование типа Polynomial
+p1 = Polynomial([1, 2, 3])  # Представляет 1 + 2x + 3x^2
+p2 = Polynomial([4, 5])     # Представляет 4 + 5x
+
+println("p1 = ", p1)
+println("p2 = ", p2)
+
+println("p1 + p2 = ", p1 + p2)
+println("p1 - p2 = ", p1 - p2)
+println("p1 * p2 = ", p1 * p2)
