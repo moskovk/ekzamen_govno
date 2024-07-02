@@ -1,0 +1,32 @@
+# 9) Реализовать алгоритм, проверяющий, является ли заданное целое
+#число простым.
+
+# Функция для проверки, является ли число простым
+function is_prime(n::Int)
+    if n <= 1
+        return false
+    elseif n <= 3
+        return true
+    elseif n % 2 == 0 || n % 3 == 0
+        return false
+    end
+
+    i = 5
+    while i * i <= n
+        if n % i == 0 || n % (i + 2) == 0
+            return false
+        end
+        i += 6
+    end
+
+    return true
+end
+
+# Примеры использования функции
+println("1-", is_prime(1))    # false
+println("2-", is_prime(2))    # true
+println("3-", is_prime(3))    # true
+println("4-", is_prime(4))    # false
+println("17-", is_prime(17))   # true
+println("18-", is_prime(18))   # false
+println("19-", is_prime(19))   # true
