@@ -1,0 +1,109 @@
+# 4) Спроектировать параметрический тип данных дуальных чисел Dual,
+#реализовать основные операции и все элементарные функции для этого типа данных.
+
+module DualNumbers
+
+# Параметрический тип данных для дуальных чисел
+struct Dual{T}
+    real::T
+    dual::T
+end
+
+# Конструктор для создания дуального числа
+Dual(real::T, dual::T) where {T} = Dual{T}(real, dual)
+
+# Экспортируем тип и конструктор
+export Dual
+
+# Основные арифметические операции для дуальных чисел
+import Base: +, -, *, /, ^, show
+
+# Сложение
+function +(a::Dual, b::Dual)
+    Dual(a.real + b.real, a.dual + b.dual)
+end
+
+# Вычитание
+function -(a::Dual, b::Dual)
+    Dual(a.real - b.real, a.dual - b.dual)
+end
+
+# Умножение
+function *(a::Dual, b::Dual)
+    Dual(a.real * b.real, a.real * b.dual + a.dual * b.real)
+end
+
+# Деление
+function /(a::Dual, b::Dual)
+    Dual(a.real / b.real, (a.dual * b.real - a.real * b.dual) / (b.real^2))
+end
+
+# Возведение в степень
+function ^(a::Dual, n::Int)
+    if n == 0
+        return Dual(one(a.real), zero(a.real))
+    elseif n == 1
+        return a
+    else
+        b = a
+        for i in 2:n
+            b = b * a
+        end
+        return b
+    end
+end
+
+# Реализация элементарных функций
+import Base: exp, log, sin, cos, tan
+
+# Экспонента
+function exp(a::Dual)
+    Dual(exp(a.real), exp(a.real) * a.dual)
+end
+
+# Логарифм
+function log(a::Dual)
+    Dual(log(a.real), a.dual / a.real)
+end
+
+# Синус
+function sin(a::Dual)
+    Dual(sin(a.real), cos(a.real) * a.dual)
+end
+
+# Косинус
+function cos(a::Dual)
+    Dual(cos(a.real), -sin(a.real) * a.dual)
+end
+
+# Тангенс
+function tan(a::Dual)
+    Dual(tan(a.real), a.dual / cos(a.real)^2)
+end
+
+# Форматированный вывод
+function show(io::IO, a::Dual)
+    print(io, "Dual(", a.real, ", ", a.dual, ")")
+end
+
+end # module DualNumbers
+
+using .DualNumbers
+
+# Создание дуальных чисел
+a = Dual(1.0, 2.0)
+b = Dual(2.0, 3.0)
+
+# Основные арифметические операции
+println(a + b)  # Dual(3.0, 5.0)
+println(a - b)  # Dual(-1.0, -1.0)
+println(a * b)  # Dual(2.0, 7.0)
+println(a / b)  # Dual(0.5, 0.25)
+println(a^2)    # Dual(1.0, 4.0)
+
+# Элементарные функции
+println(exp(a))  # Dual(2.718281828459045, 5.43656365691809)
+println(log(b))  # Dual(0.6931471805599453, 1.5)
+println(sin(a))  # Dual(0.8414709848078965, 1.0806046117362795)
+println(cos(a))  # Dual(0.5403023058681398, -1.682941969615793)
+println(tan(a))  # Dual(1.5574077246549023, 6.639197924772789)
