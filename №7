@@ -1,0 +1,63 @@
+# 7) Реализовать расширенный алгоритм Евклида. Обеспечить
+#возможность применение соответствующей функции не только к
+#элементам кольца целых чисел, но и, например, к многочленам (т.е.
+#функция должна быть обобщенной).
+
+# Установка и использование пакета Polynomials
+import Pkg
+Pkg.add("Polynomials")
+using Polynomials
+
+# Расширенный алгоритм Евклида для целых чисел
+function extended_gcd(a::Int, b::Int)
+    old_r, r = a, b
+    old_s, s = 1, 0
+    old_t, t = 0, 1
+
+    while r != 0
+        quotient = div(old_r, r)
+        old_r, r = r, old_r - quotient * r
+        old_s, s = s, old_s - quotient * s
+        old_t, t = t, old_t - quotient * t
+    end
+
+    return (old_r, old_s, old_t)
+end
+
+# Расширенный алгоритм Евклида для многочленов
+function extended_gcd(a::Polynomial, b::Polynomial)
+    old_r, r = a, b
+    old_s, s = Polynomial([1]), Polynomial([0])
+    old_t, t = Polynomial([0]), Polynomial([1])
+
+    while r != Polynomial([0])
+        quotient = div(old_r, r)
+        old_r, r = r, old_r - quotient * r
+        old_s, s = s, old_s - quotient * s
+        old_t, t = t, old_t - quotient * t
+    end
+
+    return (old_r, old_s, old_t)
+end
+
+# Обобщенная функция для вызова соответствующего метода в зависимости от типа аргументов
+function extended_gcd(a, b)
+    if isa(a, Int) && isa(b, Int)
+        return extended_gcd(a::Int, b::Int)
+    elseif isa(a, Polynomial) && isa(b, Polynomial)
+        return extended_gcd(a::Polynomial, b::Polynomial)
+    else
+        throw(ArgumentError("Unsupported types for extended_gcd"))
+    end
+end
+
+# Примеры использования
+# Для целых чисел
+gcd, x, y = extended_gcd(240, 46)
+println("gcd: $gcd, x: $x, y: $y")
+
+# Для многочленов
+p1 = Polynomial([1, 0, -1])  # x^2 - 1
+p2 = Polynomial([1, -1])     # x - 1
+gcd, x, y = extended_gcd(p1, p2)
+println("gcd: $gcd, x: $x, y: $y")
