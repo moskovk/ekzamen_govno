@@ -1,0 +1,68 @@
+# 5) Спроектировать параметрический тип данных дуальных чисел Dual. С
+#использованием этого типа данных написать функцию высшего
+#порядка, получающую на вход f::Function и некоторое вещественное
+#число x и возвращающую кортеж значений f(x), f'(x) основные
+#операции и все элементарные функции для этого типа данных.
+
+# Определение типа Dual
+struct Dual{T}
+    value::T
+    epsilon::T
+end
+
+# Конструктор для удобного создания дуальных чисел
+Dual(value::T) where T = Dual(value, zero(T))
+
+# Основные операции для дуальных чисел
+import Base: +, -, *, /, ^
+
+# Сложение
++(a::Dual, b::Dual) = Dual(a.value + b.value, a.epsilon + b.epsilon)
++(a::Dual, b::T) where T = Dual(a.value + b, a.epsilon)
++(a::T, b::Dual) where T = Dual(a + b.value, b.epsilon)
+
+# Вычитание
+-(a::Dual, b::Dual) = Dual(a.value - b.value, a.epsilon - b.epsilon)
+-(a::Dual, b::T) where T = Dual(a.value - b, a.epsilon)
+-(a::T, b::Dual) where T = Dual(a - b.value, -b.epsilon)
+
+# Умножение
+*(a::Dual, b::Dual) = Dual(a.value * b.value, a.value * b.epsilon + a.epsilon * b.value)
+*(a::Dual, b::T) where T = Dual(a.value * b, a.epsilon * b)
+*(a::T, b::Dual) where T = Dual(a * b.value, a * b.epsilon)
+
+# Деление
+/(a::Dual, b::Dual) = Dual(a.value / b.value, (a.epsilon * b.value - a.value * b.epsilon) / (b.value^2))
+/(a::Dual, b::T) where T = Dual(a.value / b, a.epsilon / b)
+/(a::T, b::Dual) where T = Dual(a / b.value, -a * b.epsilon / (b.value^2))
+
+# Возведение в степень
+^(a::Dual, b::T) where T = Dual(a.value^b, b * a.value^(b-1) * a.epsilon)
+
+# Элементарные функции
+import Base: sin, cos, exp, log
+
+# Синус
+sin(a::Dual) = Dual(sin(a.value), cos(a.value) * a.epsilon)
+
+# Косинус
+cos(a::Dual) = Dual(cos(a.value), -sin(a.value) * a.epsilon)
+
+# Экспонента
+exp(a::Dual) = Dual(exp(a.value), exp(a.value) * a.epsilon)
+
+# Логарифм
+log(a::Dual) = Dual(log(a.value), a.epsilon / a.value)
+
+# Функция высшего порядка для вычисления значения и производной
+function differentiate(f::Function, x::T) where T
+    dual_x = Dual(x, one(T))
+    dual_f = f(dual_x)
+    return (dual_f.value, dual_f.epsilon)
+end
+
+# Пример использования
+f(x) = x^2 + 2x + 1
+
+value, derivative = differentiate(f, 3.0)
+println("f(3) = $value, f'(3) = $derivative")
