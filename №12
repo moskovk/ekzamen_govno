@@ -1,0 +1,46 @@
+# 12) Реализовать алгоритм, реализующий обратный ход алгоритма Гаусса
+#и протестировать его на случайных треугольных матрицах большого
+#размера.
+
+using LinearAlgebra
+
+# Функция для генерации случайной верхней треугольной матрицы
+function random_upper_triangular_matrix(n::Int)
+    U = randn(n, n)  # Создаем случайную матрицу
+    for i in 2:n
+        for j in 1:i-1
+            U[i, j] = 0.0  # Обнуляем нижние элементы
+        end
+    end
+    return U
+end
+
+# Функция для обратного хода алгоритма Гаусса
+function back_substitution(U::AbstractMatrix{T}, b::AbstractVector{T}) where T
+    n = size(U, 1)
+    x = zeros(T, n)
+    for i in n:-1:1
+        if U[i, i] == 0
+            error("Matrix is singular!")
+        end
+        x[i] = (b[i] - dot(U[i, i+1:end], x[i+1:end])) / U[i, i]
+    end
+    return x
+end
+
+# Тестирование функции на случайных треугольных матрицах
+function test_back_substitution()
+    n = 1000  # Размер матрицы
+    U = random_upper_triangular_matrix(n)
+    x_true = randn(n)  # Настоящее решение
+    b = U * x_true  # Правые части уравнений
+
+    # Используем нашу функцию для нахождения решения
+    x_computed = back_substitution(U, b)
+
+    # Проверяем правильность решения
+    println("Норма разницы между вычисленным и истинным решением: ", norm(x_computed - x_true))
+end
+
+# Запуск теста
+test_back_substitution()
