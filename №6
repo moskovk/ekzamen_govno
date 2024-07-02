@@ -1,0 +1,107 @@
+
+# 6) Спроектировать параметрический тип данных данных Residue,
+#представляющий собой кольцо вычетов по некоторому модулю
+#(параметр типа). Реализовать все операции в кольце вычетов.
+
+# Определение типа Residue
+struct Residue{T, M}
+    value::T
+    function Residue{T, M}(x::T) where {T, M}
+        new{T, M}(mod(x, M))
+    end
+end
+
+# Основные операции для кольца вычетов
+import Base: +, -, *, /, ^, ==, zero, one, show
+
+# Переопределение функции show для более удобного вывода
+function show(io::IO, r::Residue{T, M}) where {T, M}
+    print(io, "Residue(", r.value, " mod ", M, ")")
+end
+
+# Сложение
+function +(a::Residue{T, M}, b::Residue{T, M}) where {T, M}
+    Residue{T, M}(a.value + b.value)
+end
+
+# Вычитание
+function -(a::Residue{T, M}, b::Residue{T, M}) where {T, M}
+    Residue{T, M}(a.value - b.value)
+end
+
+# Умножение
+function *(a::Residue{T, M}, b::Residue{T, M}) where {T, M}
+    Residue{T, M}(a.value * b.value)
+end
+
+# Обратный элемент по сложению
+function -(a::Residue{T, M}) where {T, M}
+    Residue{T, M}(-a.value)
+end
+
+# Проверка на равенство
+function ==(a::Residue{T, M}, b::Residue{T, M}) where {T, M}
+    a.value == b.value
+end
+
+# Возведение в степень
+function ^(a::Residue{T, M}, b::Integer) where {T, M}
+    Residue{T, M}(a.value^b)
+end
+
+# Нахождение мультипликативного обратного элемента (если существует)
+function invmod(a::T, m::T) where T
+    x, y, g = gcdx(a, m)
+    if g != 1
+        throw(DomainError("Нет мультипликативного обратного элемента для $a по модулю $m"))
+    else
+        return mod(x, m)
+    end
+end
+
+# Деление
+function /(a::Residue{T, M}, b::Residue{T, M}) where {T, M}
+    inv_b = invmod(b.value, M)
+    Residue{T, M}(a.value * inv_b)
+end
+
+# Нули и единицы
+function zero(::Type{Residue{T, M}}) where {T, M}
+    Residue{T, M}(zero(T))
+end
+
+function one(::Type{Residue{T, M}}) where {T, M}
+    Residue{T, M}(one(T))
+end
+
+# Пример использования
+const Modulus = 7
+
+# Создание элементов кольца вычетов по модулю Modulus
+a = Residue{Int, Modulus}(3)
+b = Residue{Int, Modulus}(5)
+c = Residue{Int, Modulus}(2)  # Пример элемента, не имеющего мультипликативного обратного элемента по модулю 7
+
+# Примеры операций
+println("a = $a")
+println("b = $b")
+println("a + b = ", a + b)   # Результат: Residue(1 mod 7)
+println("a - b = ", a - b)   # Результат: Residue(5 mod 7)
+println("a * b = ", a * b)   # Результат: Residue(1 mod 7)
+
+# Пример деления с обработкой ошибок
+try
+    println("a / b = ", a / b)   # Результат: Residue(6 mod 7)
+catch e
+    println("Ошибка при делении a / b: ", e)
+end
+
+println("a == b = ", a == b) # Результат: false
+println("a ^ 2 = ", a^2)     # Результат: Residue(2 mod 7)
+
+# Пример обработки ошибки при делении
+try
+    println("a / c = ", a / c)
+catch e
+    println("Ошибка при делении a / c: ", e)
+end
