@@ -1,0 +1,45 @@
+# 3) Спроектировать параметрический тип данных Polynomial, реализовать вычисление многочлена и его производной в точке по расширенной
+схеме Горнера
+
+# Определяем параметрический тип данных Polynomial
+struct Polynomial{T}
+    coefficients::Vector{T}  # Коэффициенты многочлена
+end
+
+# Метод для вычисления значения многочлена в точке x по схеме Горнера
+function evaluate(poly::Polynomial, x::Number)
+    result = poly.coefficients[end]
+    for i in length(poly.coefficients)-1:-1:1
+        result = result * x + poly.coefficients[i]
+    end
+    return result
+end
+
+# Метод для вычисления значения производной многочлена в точке x по расширенной схеме Горнера
+function evaluate_derivative(poly::Polynomial, x::Number)
+    n = length(poly.coefficients) - 1
+    if n == 0
+        return zero(x)
+    end
+    
+    # Начинаем с коэффициента при старшей степени
+    result = poly.coefficients[end] * n
+    derivative = poly.coefficients[end] * n
+    
+    for i in n-1:-1:1
+        derivative = derivative * x + poly.coefficients[i+1] * i
+    end
+    
+    return derivative
+end
+
+# Пример использования
+coefficients = [-1, 2, -6, 2]  # Коэффициенты многочлена: -1 + 2x - 6x^2 + 2x^3
+poly = Polynomial(coefficients)
+
+x = 3.0  # Точка, в которой вычисляем значение и производную
+value = evaluate(poly, x)
+derivative_value = evaluate_derivative(poly, x)
+
+println("Значение многочлена в точке $x: $value")
+println("Значение производной многочлена в точке $x: $derivative_value")
