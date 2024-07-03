@@ -39,7 +39,6 @@ println("Отсортированный массив: ", arr)
 using Pkg
 Pkg.add("BenchmarkTools")
 using Random
-using Statistics
 using BenchmarkTools
 
 # Генерация случайного массива заданной длины
@@ -54,7 +53,7 @@ function experimental_study()
 
     for size in sizes
         arr = generate_random_array(size)
-        time = @belapsed quicksort!(arr)
+        time = @elapsed quicksort!(arr)
         results[size] = time
     end
 
